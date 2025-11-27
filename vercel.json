@@ -2,16 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "env": [
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  ],
-  "crons": [
-    {
-      "path": "/api/analyze",
-      "schedule": "*/15 * * * *"
-    }
-  ]
+  "installCommand": "npm install"
 }
 
