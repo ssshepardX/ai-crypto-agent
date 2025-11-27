@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 
-const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+const genai = process.env.GEMINI_API_KEY 
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
+
+const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_KEY
+  ? createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_KEY
+    )
+  : null;
 
 interface CoinData {
   symbol: string;
@@ -105,6 +110,9 @@ async function getAIAdvice(coin: CoinData): Promise<{
   `;
 
   try {
+    if (!genai) {
+      throw new Error('Gemini API key not configured');
+    }
     const model = genai.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -162,7 +170,7 @@ export async function GET() {
     }
 
     // Save to Supabase
-    if (results.length > 0) {
+    if (results.length > 0 && supabase) {
       const { error } = await supabase
         .from('signals')
         .insert(results);
