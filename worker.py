@@ -10,7 +10,8 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=_api_key)
 
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
@@ -119,20 +120,17 @@ def analyze_with_gemini(coin_data):
     """
     
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config={"response_mime_type": "application/json"}
+        )
         response = model.generate_content(prompt)
-        
-        json_str = response.text.strip()
-        if json_str.startswith("```"):
-            json_str = json_str.split("```")[1]
-            if json_str.startswith("json"):
-                json_str = json_str[4:]
-        
+        json_str = (response.text or "").strip()
+        if not json_str:
+            raise ValueError("empty response")
         result = json.loads(json_str)
-        
         print(f"  ✓ {symbol}: {result['sentiment'].upper()} | Score: {result['score']}/100")
         return result
-        
     except Exception as e:
         print(f"  ✗ Analysis error: {str(e)}")
         return {
@@ -158,8 +156,11 @@ def update_database(coin_data, analysis):
             "ai_comment": analysis.get('analysis', ''),
             "updated_at": datetime.utcnow().isoformat()
         }
-        
-        response = supabase.table("signals").upsert(record, on_conflict="coin").execute()
+        existing = supabase.table("signals").select("id").eq("coin", symbol).limit(1).execute()
+        if getattr(existing, "data", None):
+            supabase.table("signals").update(record).eq("coin", symbol).execute()
+        else:
+            supabase.table("signals").insert(record).execute()
         print(f"  ✓ {symbol} saved to database")
         return True
         

@@ -12,8 +12,8 @@ from datetime import datetime
 
 load_dotenv()
 
-# Config
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=_api_key)
 supabase: Client = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_KEY")
@@ -62,9 +62,12 @@ def get_ai_advice(coin_data):
     """
     
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config={"response_mime_type": "application/json"}
+        )
         response = model.generate_content(prompt)
-        return response.text
+        return (response.text or "").strip()
     except Exception as e:
         return f"Error: {str(e)}"
 

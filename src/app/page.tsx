@@ -17,39 +17,16 @@ type CoinSignal = {
   timestamp: string;
 };
 
-// --- MOCK DATA ---
-const MOCK_DATA: CoinSignal[] = [
-  {
-    id: 1,
-    coin: "SOL",
-    price: 145.20,
-    change_24h: 5.4,
-    ai_score: 88,
-    ai_sentiment: "bullish",
-    ai_comment: "Ağ aktivitesi ATH seviyesinde. RSI 30 altından güçlü tepki verdi. Kısa vadeli $155 hedefli momentum var.",
-    timestamp: "15 min ago"
-  },
-  {
-    id: 2,
-    coin: "PEPE",
-    price: 0.0000084,
-    change_24h: -2.1,
-    ai_score: 65,
-    ai_sentiment: "neutral",
-    ai_comment: "Hacim düşüyor ancak balina cüzdanlarında birikim var. 0.0000080 desteği kırılmadığı sürece izlenmeli.",
-    timestamp: "20 min ago"
-  },
-  {
-    id: 3,
-    coin: "ETH",
-    price: 3350.00,
-    change_24h: -0.5,
-    ai_score: 42,
-    ai_sentiment: "bearish",
-    ai_comment: "ETF haberleri fiyatlandı. Teknik göstergeler yorgunluk sinyali veriyor. $3200 seviyesine düzeltme ihtimali yüksek.",
-    timestamp: "45 min ago"
-  }
-];
+type SignalRow = {
+  id: number;
+  coin: string;
+  price: number;
+  change_24h?: number;
+  ai_score: number;
+  ai_sentiment: "bullish" | "bearish" | "neutral";
+  ai_comment: string;
+  created_at: string;
+};
 
 // --- SKOR BAR COMPONENT ---
 function ScoreBar({ score }: { score: number }) {
@@ -89,7 +66,7 @@ export default function Dashboard() {
         }
         
         if (data) {
-          const formattedData = data.map((item: any) => ({
+          const formattedData = data.map((item: SignalRow) => ({
             id: item.id,
             coin: item.coin,
             price: item.price,
