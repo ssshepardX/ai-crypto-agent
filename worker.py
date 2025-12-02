@@ -168,7 +168,7 @@ def update_database(coin_data, analysis):
         print(f"  ✗ Database error: {str(e)}")
         return False
 
-def worker_loop(test_mode=False):
+def worker_loop(test_mode=False, run_once=False):
     """Main worker loop"""
     print("="*60)
     print("CRYPTO AI WORKER STARTED")
@@ -204,9 +204,12 @@ def worker_loop(test_mode=False):
                 time.sleep(2)
             
             print(f"\n>>> Cycle complete: Processed {processed} coins")
-            print(f">>> Next cycle in {interval} seconds")
             print("="*60)
             
+            if run_once:
+                break
+            
+            print(f">>> Next cycle in {interval} seconds")
             time.sleep(interval)
             
         except KeyboardInterrupt:
@@ -220,9 +223,10 @@ def worker_loop(test_mode=False):
 if __name__ == "__main__":
     import sys
     test_mode = "--test" in sys.argv
+    run_once = "--once" in sys.argv
     if test_mode:
         print("Running in TEST MODE (60 second intervals)")
     else:
         print("Running in PRODUCTION MODE (15 minute intervals)")
     
-    worker_loop(test_mode=test_mode)
+    worker_loop(test_mode=test_mode, run_once=run_once)

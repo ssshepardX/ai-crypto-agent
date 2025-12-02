@@ -8,6 +8,10 @@ on:
 jobs:
   run_worker:
     runs-on: ubuntu-latest
+    concurrency:
+      group: worker-cron
+      cancel-in-progress: true
+    timeout-minutes: 10
     
     steps:
       - uses: actions/checkout@v4
@@ -25,9 +29,10 @@ jobs:
       - name: Run crypto worker
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python worker.py
+        run: python worker.py --once
       
       - name: Log execution
         run: echo "Worker execution completed at $(date)"
